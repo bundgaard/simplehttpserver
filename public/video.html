@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>&mdash; Video</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <base href="/">
+
+  <style>
+    .video-overlay {
+      position: relative;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid red;
+    }
+
+    
+  </style>
+</head>
+
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Video Player</h1>
+    </div>
+    <div class="container">
+      <div class="video-overlay">
+        <button class="button">Play</button>
+        <button class="button">Stop</button>
+        <input type="range" min="0" max="100" value="25">
+        <video id="real-video">
+          
+        </video>
+
+      </div>
+    </div>
+  </section>
+
+
+  <script>
+    {{ with $map := . }}
+    const file = {{ index $map "video/mp4" }};
+    {{ end }}
+    
+    const videoTag = document.getElementById("real-video");
+    file.forEach((file, idx , arr) => {
+      var elm = document.createElement("source");
+      elm.src=file;
+      videoTag.appendChild(elm);
+    });
+
+  </script>
+</body>
+
+</html>
