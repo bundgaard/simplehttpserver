@@ -1,54 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <title>&mdash; Video</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <base href="/">
 
   <style>
-    .video-overlay {
+    @font-face {
+   font-family: 'HeydingsControlsRegular';
+   src: url('/static/public/heydings_controls-webfont.woff') format('woff'),
+        url('/static/public/heydings_controls-webfont.ttf') format('truetype');
+   font-weight: normal;
+   font-style: normal;
+}
+    html, body {
+      background-color: #000;
+    }
+    .player {
       position: relative;
       margin-left: auto;
       margin-right: auto;
       border: 1px solid red;
     }
 
+    .controls {
+      visibility: hidden;
+      opacity: 0.5;
+      width: 400px;
+      border-radius: 10px;
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      margin-left: -200px;
+      box-shadow: 3px 3px 5px black;
+      transition: 1s all;
+      display: flex;
+    }
+
+    .player:hover .controls, 
+    .player:focus-within .controls {
+      opacity: 1;
+      border: 1px solid red;
+    }
+
+    .timer {
+      line-height: 38px;
+      font-size: 10px;
+      font-family: monospace;
+      text-shadow: 1px 1px 0 black;
+      color: #fff;
+      flex: 5;
+      position: relative;
+    }
+
+    .timer div {
+      position: absolute;
+      background-color: rgba(255,255,255,0.2);
+      right: 0;
+      top: 0;
+      width: 0;
+      height: 38px;
+      z-index: 2;
+    }
+
+    .timer span {
+      position: absolute;
+      z-index: 3;
+      right: 19px;
+    }
+
+    .button-x::before {
+      font-family: HeydingsControlsRegular;     
+      font-size: 20px;
+      position: relative;
+      content: attr(data-icon);
+      color: #aaa;
+      text-shadow: 1px 1px 0px black;
+    }
     
+    .button-x {
+      background-color: rgba(0,0,0,0.3);
+      font-size: 20px;
+      position: relative;
+      border-radius: 10px;
+      border: 1px solid white;
+      color: #aaa;
+      text-shadow: 1px 1px 0px black;
+    }
   </style>
 </head>
 
 <body>
-  <section class="section">
-    <div class="container">
-      <h1 class="title">Video Player</h1>
-    </div>
-    <div class="container">
       <div class="video-overlay">
-        <button class="button">Play</button>
-        <button class="button">Stop</button>
-        <input type="range" min="0" max="100" value="25">
-        <video id="real-video">
-          
+        <video id="real-video" controls>          
         </video>
-
-      </div>
-    </div>
-  </section>
-
+        <div class="controls">
+          <button class="button-x" data-icon="p" id="previous">&nbsp;</button>
+          <button class="button-x" data-icon="P" id="play">&nbsp;</button>
+          <button class="button-x" data-icon="S" id="stop">&nbsp;</button>
+          
+          <button class="button-x" data-icon="B">&nbsp;</button>
+          <button class="button-x" data-icon="F">&nbsp;</button>
+          <button class="button-x" data-icon="j" id="next">&nbsp;</button>
+          <div class="timer">
+            <div></div>
+            <span aria-label="timer" id="timerSpan">00:00</span>
+          </div>
+        </div> <!-- controls-->
+      </div><!-- video-overlay -->
+    
 
   <script>
     {{ with $map := . }}
     const file = {{ index $map "video/mp4" }};
     {{ end }}
     
+    let currentVideo = 0;
     const videoTag = document.getElementById("real-video");
+    const controls = document.querySelector(".controls");
+    const play = document.getElementById("play");
+    const stopButton = document.getElementById("stop");
+    const timerWrapper = document.querySelector(".timer");
+    const timerBar = document.querySelector(".timer div");
+    const timerSpan = document.getElementById("timerSpan");
+    const next = document.getElementById("next");
+    const previous = document.getElementById("previous");
+
+    next.addEventListener("click", () => {
+      console.log("clicked on next");
+      
+      videoTag.src = file[(currentVideo++)];
+    });
+    previous.addEventListener("click", () => {
+      videoTag.src = file[(currentVideo--)];
+    });
     file.forEach((file, idx , arr) => {
       var elm = document.createElement("source");
       elm.src=file;
       videoTag.appendChild(elm);
     });
+
+    document.onreadystatechange = (evt) => {
+      videoTag.removeAttribute("controls");
+      controls.style.visibility="visible";
+      
+      play.addEventListener("click", (evt)=>{
+        videoTag.play();
+      });
+
+      stopButton.addEventListener("click", (evt)=>{
+        videoTag.pause();
+        videoTag.currentTime = 0;
+      });
+      videoTag.addEventListener("timeupdate", (evt) => {
+        const minutes = Math.floor(videoTag.currentTime / 60);
+        const seconds = Math.floor(videoTag.currentTime - minutes * 60);
+        console.log(videoTag.duration);
+        timerSpan.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2,'0')}`;
+
+        const barLength = timerWrapper.clientWidth * (videoTag.currentTime/videoTag.duration);
+        timerBar.style.width = `${barLength}px`;
+      });
+
+    };
 
   </script>
 </body>

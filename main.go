@@ -82,6 +82,7 @@ func main() {
 	root := http.NewServeMux()
 
 	root.Handle("/", http.FileServer(http.Dir(*fp)))
+	root.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.FS(videopage))))
 	root.HandleFunc("/video/", videoPlayer)
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", *port), root); err != nil {
